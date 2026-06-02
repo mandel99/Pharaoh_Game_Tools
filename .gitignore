@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+artifacts/
+*.user
+*.suo
+*.pdb
+*.cache
+*.tmp
+*.log
+!PharaohGameTools.WinUI/Properties/PublishProfiles/*.pubxml

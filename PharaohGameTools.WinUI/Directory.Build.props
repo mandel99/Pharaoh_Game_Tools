@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <BaseOutputPath>bin\x64\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\x64\</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+  </PropertyGroup>
+</Project>

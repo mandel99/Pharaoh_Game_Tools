@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="PharaohGameTools.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PharaohGameTools.WinUI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Pharaoh Game Tools"
+    mc:Ignorable="d">
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseAlt" />
+    </Window.SystemBackdrop>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            x:Name="WindowDragBar"
+            Height="20"
+            Margin="{ThemeResource AppWindowDragBarMargin}"
+            Padding="{ThemeResource AppZeroThickness}"
+            Background="Transparent"
+            CornerRadius="{ThemeResource AppCardCornerRadius}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image
+                    Width="16"
+                    Height="16"
+                    Margin="{ThemeResource AppIconMargin}"
+                    VerticalAlignment="Center"
+                    Source="/Assets/AppIcon.ico" />
+                <MenuBar
+                    Grid.Column="1"
+                    Padding="{ThemeResource AppZeroThickness}"
+                    MinHeight="{ThemeResource AppMenuMinHeight}"
+                    Background="Transparent"
+                    VerticalAlignment="Center">
+                    <MenuBarItem Title="File" Margin="{ThemeResource AppMenuItemMargin}">
+                        <MenuFlyoutItem x:Name="MenuOpenFileItem" Text="Open File..." Click="OpenFileMenuItem_Click" />
+                        <MenuFlyoutItem x:Name="MenuSaveFileItem" Text="Save File..." Click="SaveFileMenuItem_Click" />
+                        <MenuFlyoutItem x:Name="MenuSaveAllItem" Text="Save All..." Click="SaveAllMenuItem_Click" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem x:Name="MenuBatchExportItem" Text="Batch Export" Click="BatchExportMenuItem_Click" />
+                        <MenuFlyoutItem x:Name="MenuBatchImportItem" Text="Batch Import" Click="BatchImportMenuItem_Click" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="Exit" Click="ExitMenuItem_Click" />
+                    </MenuBarItem>
+                    <MenuBarItem Title="View" Margin="{ThemeResource AppMenuItemMargin}">
+                        <ToggleMenuFlyoutItem x:Name="MenuHideSystemItemsItem" Text="Hide system items" Click="HideSystemItemsMenuItem_Click" />
+                    </MenuBarItem>
+                    <MenuBarItem Title="Help" Margin="{ThemeResource AppMenuItemMargin}">
+                        <MenuFlyoutItem Text="Sg3/555 Tool Help" Click="SgToolHelpMenuItem_Click" />
+                        <MenuFlyoutItem Text="Text Tool Help" Click="TextToolHelpMenuItem_Click" />
+                        <MenuFlyoutItem Text="PAK Tool Help" Click="PakToolHelpMenuItem_Click" />
+                        <MenuFlyoutItem Text="Bik Player Help" Click="BikToolHelpMenuItem_Click" />
+                    </MenuBarItem>
+                </MenuBar>
+            </Grid>
+        </Border>
+
+        <Border
+            Grid.Row="1"
+            Margin="{ThemeResource AppShellMargin}"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource AppShellCornerRadius}">
+            <TabView
+                x:Name="TabControl"
+                Background="Transparent"
+                TabWidthMode="SizeToContent"
+                VerticalAlignment="Stretch"
+                IsAddTabButtonVisible="False"
+                SelectionChanged="TabControl_SelectionChanged">
+                <TabView.Resources>
+                    <StaticResource x:Key="TabViewItemHeaderPadding" ResourceKey="AppTabHeaderPadding" />
+                </TabView.Resources>
+                <TabViewItem MaxWidth="{ThemeResource AppTabMaxWidth}" Header="SG3 Tool" IsClosable="False" Margin="{ThemeResource AppTabItemMargin}">
+                    <Border Background="{StaticResource ActiveTabSurfaceBrush}" Padding="{ThemeResource AppTabContentPadding}" CornerRadius="{ThemeResource AppCardCornerRadius}">
+                        <local:SgToolView x:Name="SgToolViewHost" />
+                    </Border>
+                </TabViewItem>
+
+                <TabViewItem MaxWidth="{ThemeResource AppTabMaxWidth}" Header="Text Tool" IsClosable="False" Margin="{ThemeResource AppTabItemMargin}">
+                    <Border Background="{StaticResource ActiveTabSurfaceBrush}" Padding="{ThemeResource AppTabContentPadding}" CornerRadius="{ThemeResource AppCardCornerRadius}">
+                        <local:TextToolView x:Name="TextToolViewHost" />
+                    </Border>
+                </TabViewItem>
+
+                <TabViewItem MaxWidth="{ThemeResource AppTabMaxWidth}" Header="PAK Tool" IsClosable="False" Margin="{ThemeResource AppTabItemMargin}">
+                    <Border Background="{StaticResource ActiveTabSurfaceBrush}" Padding="{ThemeResource AppTabContentPadding}" CornerRadius="{ThemeResource AppCardCornerRadius}">
+                        <local:PakToolView x:Name="PakToolViewHost" />
+                    </Border>
+                </TabViewItem>
+
+                <TabViewItem MaxWidth="{ThemeResource AppTabMaxWidth}" Header="Bik Player" IsClosable="False" Margin="{ThemeResource AppTabItemMargin}">
+                    <Border Background="{StaticResource ActiveTabSurfaceBrush}" Padding="{ThemeResource AppTabContentPadding}" CornerRadius="{ThemeResource AppCardCornerRadius}">
+                        <local:BikPlayerView x:Name="BikPlayerViewHost" />
+                    </Border>
+                </TabViewItem>
+            </TabView>
+        </Border>
+    </Grid>
+</Window>
+

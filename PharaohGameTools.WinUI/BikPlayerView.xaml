@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PharaohGameTools.WinUI.BikPlayerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="{ThemeResource AppHeaderSpacing}">
+            <TextBlock
+                Text="Bik Player"
+                Style="{ThemeResource CompactSectionTitleTextStyle}" />
+            <TextBlock
+                Text="Desktop player for Pharaoh BIK videos with playback, audio, and direct AVI or MP4 export."
+                Opacity="0.82"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            Margin="{ThemeResource AppSectionMargin}"
+            Padding="{ThemeResource AppCardPadding}"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource AppCardCornerRadius}">
+            <StackPanel Spacing="{ThemeResource AppSectionSpacing}">
+                <Grid ColumnSpacing="{ThemeResource AppControlSpacing}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="{ThemeResource AppControlSpacing}">
+                        <Button
+                            x:Name="OpenButton"
+                            Content="Open BIK..."
+                            Click="OpenButton_Click" />
+                        <Button
+                            x:Name="OpenFolderButton"
+                            Content="Open Folder..."
+                            Click="OpenFolderButton_Click" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="{ThemeResource AppControlSpacing}">
+                        <Button
+                            x:Name="ExportAviButton"
+                            Content="Export AVI..."
+                            IsEnabled="False"
+                            Click="ExportAviButton_Click" />
+                        <Button
+                            x:Name="ExportMp4Button"
+                            Content="Export MP4..."
+                            IsEnabled="False"
+                            Click="ExportMp4Button_Click" />
+                    </StackPanel>
+                </Grid>
+
+                <InfoBar
+                    x:Name="StatusInfoBar"
+                    IsOpen="True"
+                    IsClosable="False"
+                    Severity="Informational"
+                    Title="Ready"
+                    Message="Open a .bik file to start playback." />
+            </StackPanel>
+        </Border>
+
+        <Border
+            Grid.Row="2"
+            Padding="{ThemeResource AppZeroThickness}"
+            Background="#FF080A0E"
+            BorderBrush="#FF262D38"
+            BorderThickness="1"
+            CornerRadius="{ThemeResource AppCardCornerRadius}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    Grid.Row="0"
+                    MinHeight="{ThemeResource AppBikPreviewMinHeight}"
+                    Background="Black">
+                    <Image
+                        x:Name="PreviewImage"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        x:Name="OverlayTextBlock"
+                        MaxWidth="{ThemeResource AppPreviewMaxOverlayWidth}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="{ThemeResource AppFontSizeTitle}"
+                        Foreground="#FFE1E7EF"
+                        Opacity="0.85"
+                        Text="Open a BIK video to preview and play it here."
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </Grid>
+
+                <Border
+                    Grid.Row="1"
+                    Padding="{ThemeResource AppCardPadding}"
+                    Background="#FF0F131A">
+                    <StackPanel Spacing="{ThemeResource AppSectionSpacing}">
+                        <Slider
+                            x:Name="TimelineSlider"
+                            Minimum="0"
+                            Maximum="1"
+                            Value="0"
+                            ValueChanged="TimelineSlider_ValueChanged"
+                            PointerEntered="InteractiveSurface_PointerEntered"
+                            PointerExited="InteractiveSurface_PointerExited"
+                            PointerPressed="TimelineSlider_PointerPressed"
+                            PointerReleased="TimelineSlider_PointerReleased"
+                            PointerCaptureLost="TimelineSlider_PointerCaptureLost" />
+
+                        <Grid ColumnSpacing="{ThemeResource AppControlSpacing}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button
+                                x:Name="PlayPauseButton"
+                                MinWidth="{ThemeResource AppButtonMinWidthWide}"
+                                Content="Play"
+                                Click="PlayPauseButton_Click" />
+                            <Button
+                                x:Name="StopButton"
+                                Grid.Column="1"
+                                MinWidth="{ThemeResource AppButtonMinWidthMedium}"
+                                Content="Stop"
+                                IsEnabled="False"
+                                Click="StopButton_Click" />
+                            <TextBlock
+                                x:Name="PositionTextBlock"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Foreground="#FFE1E7EF"
+                                Text="00:00" />
+                            <TextBlock
+                            x:Name="InfoTextBlock"
+                                Grid.Column="3"
+                            Foreground="#FFD2D8E0"
+                                VerticalAlignment="Center"
+                            Opacity="0.92"
+                            Text="No BIK file loaded."
+                            TextWrapping="Wrap" />
+                            <TextBlock
+                                x:Name="DurationTextBlock"
+                                Grid.Column="5"
+                                VerticalAlignment="Center"
+                                Foreground="#FF9BA7B8"
+                                Text="00:00" />
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    x:Name="ThumbnailBrowserBorder"
+                    Grid.Row="2"
+                    Padding="{ThemeResource AppCardPadding}"
+                    Background="#FF11161E"
+                    Visibility="Collapsed">
+                    <StackPanel Spacing="{ThemeResource AppSectionSpacing}">
+                        <TextBlock
+                            x:Name="ThumbnailHeaderTextBlock"
+                            Text="Folder previews"
+                            Foreground="#FFD2D8E0"
+                            FontWeight="SemiBold" />
+                        <ListView
+                            x:Name="ThumbnailGridView"
+                            IsItemClickEnabled="True"
+                            SelectionMode="None"
+                            ItemClick="ThumbnailGridView_ItemClick"
+                            PointerEntered="InteractiveSurface_PointerEntered"
+                            PointerExited="InteractiveSurface_PointerExited"
+                            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                            ScrollViewer.HorizontalScrollMode="Enabled"
+                            ScrollViewer.VerticalScrollMode="Disabled">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border
+                                        Width="164"
+                                        Padding="6"
+                                        Margin="0,0,6,6"
+                                        Background="#FF1A2028"
+                                        BorderBrush="#334C5D72"
+                                        BorderThickness="1"
+                                        CornerRadius="{ThemeResource AppCardCornerRadius}">
+                                        <StackPanel Spacing="{ThemeResource AppControlSpacing}">
+                                            <Border
+                                                Height="92"
+                                                Background="#FF07090D"
+                                                CornerRadius="6">
+                                                <Grid>
+                                                    <Image
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Stretch"
+                                                        Stretch="Uniform"
+                                                        Source="{Binding PreviewImage}" />
+                                                    <ProgressRing
+                                                        Width="28"
+                                                        Height="28"
+                                                        IsActive="{Binding IsLoading}"
+                                                        Visibility="{Binding ProgressVisibility}"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center" />
+                                                    <TextBlock
+                                                        Text="{Binding OverlayText}"
+                                                        Visibility="{Binding OverlayVisibility}"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Foreground="#FFD2D8E0"
+                                                        Opacity="0.75"
+                                                        TextWrapping="Wrap"
+                                                        TextAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                            <TextBlock
+                                                Text="{Binding DisplayName}"
+                                                Foreground="#FFF2F6FA"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Text="{Binding SummaryText}"
+                                                Foreground="#FF9BA7B8"
+                                                Opacity="0.9"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+
