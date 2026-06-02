@@ -40,6 +40,20 @@ jobs:
             -p:DebugType=None `
             -p:DebugSymbols=false
 
+      - name: Bundle launcher and Windows App Runtime prerequisites
+        shell: pwsh
+        run: |
+          $publishDir = ".\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd"
+          $runtimeSource = Get-ChildItem "$env:USERPROFILE\.nuget\packages\microsoft.windowsappsdk.runtime\*\tools\MSIX\win10-x64" -Directory | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $runtimeSource) {
+            throw "Windows App Runtime MSIX bundle not found in NuGet cache."
+          }
+          $runtimeTarget = Join-Path $publishDir "Prereqs\WindowsAppRuntime\win-x64"
+          New-Item -ItemType Directory -Path $runtimeTarget -Force | Out-Null
+          Copy-Item ".\Launch-PharaohGameTools.WinUI.ps1" $publishDir -Force
+          Copy-Item ".\Launch-PharaohGameTools.WinUI.cmd" $publishDir -Force
+          Copy-Item (Join-Path $runtimeSource.FullName "*.msix") $runtimeTarget -Force
+
       - name: Upload publish artifact
         uses: actions/upload-artifact@v4
         with:
@@ -61,5 +75,7 @@ jobs:
         with:
           files: |
             .\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd\PharaohGameTools.WinUI.exe
+            .\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd\Launch-PharaohGameTools.WinUI.cmd
+            .\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd\Launch-PharaohGameTools.WinUI.ps1
             .\release\PharaohGameTools.WinUI-win-x64-fdd-${{ github.ref_name }}.zip
           generate_release_notes: true
