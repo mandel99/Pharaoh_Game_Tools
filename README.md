@@ -4,10 +4,10 @@ Private WinUI 3 variant of Pharaoh Game Tools.
 
 ## Features
 
-- `SG Tool` for browsing `.sg2` / `.sg3` archives
+- `SG Tool` for browsing `.sg3` archives
 - sprite preview with metadata, offsets, grouping info, and animation playback
 - overlay-style building animations where a static base sprite is combined with following animation frames
-- `PAK Tool` for opening and browsing archive contents
+- `PAK Tool` for opening and browsing and exporting mission files
 - `Text Tool` for viewing text resources with selectable encoding
 - `BIK Player` for loading Bink videos, previewing files from folders, timeline seeking, thumbnail generation, and checkpoint-based seeking
 - AVI / MP4 export from BIK files
