@@ -5,7 +5,13 @@ on:
     branches:
       - master
       - main
+    tags:
+      - 'v*'
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -39,3 +45,21 @@ jobs:
         with:
           name: PharaohGameTools.WinUI-win-x64-fdd
           path: .\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd\
+
+      - name: Create release package
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $publishDir = ".\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd"
+          $releaseDir = ".\release"
+          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+          Compress-Archive -Path "$publishDir\*" -DestinationPath "$releaseDir\PharaohGameTools.WinUI-win-x64-fdd-${{ github.ref_name }}.zip" -Force
+
+      - name: Attach assets to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .\PharaohGameTools.WinUI\bin\Release\net9.0-windows10.0.26100.0\win-x64\publish-fdd\PharaohGameTools.WinUI.exe
+            .\release\PharaohGameTools.WinUI-win-x64-fdd-${{ github.ref_name }}.zip
+          generate_release_notes: true

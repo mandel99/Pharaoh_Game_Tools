@@ -32,6 +32,7 @@ GitHub Actions is configured to:
 - restore and build the WinUI solution on every push and pull request
 - run a framework-dependent x64 publish
 - upload the publish output as a workflow artifact
+- on tags like `v1.0.0`, create a GitHub Release and attach the built `exe` plus a zipped publish package
 
 ## Publish
 
