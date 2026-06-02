@@ -2,6 +2,17 @@
 
 Private WinUI 3 variant of Pharaoh Game Tools.
 
+## Features
+
+- `SG Tool` for browsing `.sg2` / `.sg3` archives
+- sprite preview with metadata, offsets, grouping info, and animation playback
+- overlay-style building animations where a static base sprite is combined with following animation frames
+- `PAK Tool` for opening and browsing archive contents
+- `Text Tool` for viewing text resources with selectable encoding
+- `BIK Player` for loading Bink videos, previewing files from folders, timeline seeking, thumbnail generation, and checkpoint-based seeking
+- AVI / MP4 export from BIK files
+- layout persistence for the WinUI workspace
+
 ## Included
 
 - `PharaohGameTools.WinUI` application
@@ -13,6 +24,14 @@ Private WinUI 3 variant of Pharaoh Game Tools.
 ```powershell
 dotnet build .\PharaohGameTools.WinUI.sln -c Release
 ```
+
+## Automatic Build
+
+GitHub Actions is configured to:
+
+- restore and build the WinUI solution on every push and pull request
+- run a framework-dependent x64 publish
+- upload the publish output as a workflow artifact
 
 ## Publish
 
