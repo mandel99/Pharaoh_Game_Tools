@@ -13,6 +13,24 @@ Pharaoh Game Tools build on WinUI 3.
 - AVI / MP4 export from BIK files
 - layout persistence for the WinUI workspace
 
+## Screenshots
+
+### SG3 Tool
+
+![SG3 Tool](docs/screenshots/sg3-tool.png)
+
+### Text Tool
+
+![Text Tool](docs/screenshots/text-tool.png)
+
+### PAK Tool
+
+![PAK Tool](docs/screenshots/pak-tool.png)
+
+### Bik Player
+
+![Bik Player](docs/screenshots/bik-player.png)
+
 ## Included
 
 - `PharaohGameTools.WinUI` application
