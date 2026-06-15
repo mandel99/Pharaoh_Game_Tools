@@ -25,6 +25,7 @@ public sealed partial class TextToolView : UserControl
     private string _sourceFormat = TextSourceFormatTxt;
     private string _resolvedEncodingName = "windows-1252";
     private string? _loadedEngEncodingName;
+    private string _loadedSourceText = string.Empty;
     private string _originalText = string.Empty;
     private byte[]? _originalBytes;
     private bool _sourceWasEng;
@@ -60,12 +61,16 @@ public sealed partial class TextToolView : UserControl
     {
         if (_editorTextBox.IsEnabled)
         {
+            string currentText = _editorTextBox.Text ?? string.Empty;
+            string selectedEncodingKey = GetSelectedTextEncodingKey();
+            string resolvedEncodingName = GetResolvedTextEncodingName(selectedEncodingKey);
             await SaveTextToolOutputAsync(
                 ".txt",
                 "Save TXT",
                 TextSourceFormatTxt,
-                () => EncodeTextToolTxt(_editorTextBox.Text ?? string.Empty),
-                fileName => $"Saved TXT: {fileName} ({_resolvedEncodingName})");
+                () => EncodeTextToolTxt(currentText, selectedEncodingKey),
+                fileName => $"Saved TXT: {fileName} ({resolvedEncodingName})",
+                () => _resolvedEncodingName = resolvedEncodingName);
         }
     }
 
@@ -73,12 +78,21 @@ public sealed partial class TextToolView : UserControl
     {
         if (_editorTextBox.IsEnabled)
         {
+            string currentText = _editorTextBox.Text ?? string.Empty;
+            string selectedEncoding = GetSelectedEngEncodingName(GetSelectedTextEncodingKey());
+            string sourceText = GetEffectiveEngSourceText(currentText);
             await SaveTextToolOutputAsync(
                 ".eng",
                 "Save ENG",
                 TextSourceFormatEng,
-                GetTextToolEngOutputBytes,
-                fileName => $"Saved ENG: {fileName} ({GetSelectedEngEncodingName()})");
+                () => GetTextToolEngOutputBytes(sourceText, selectedEncoding),
+                fileName => $"Saved ENG: {fileName} ({selectedEncoding})",
+                () =>
+                {
+                    _loadedEngEncodingName = selectedEncoding;
+                    _loadedSourceText = sourceText;
+                },
+                sourceText);
         }
     }
 
@@ -154,27 +168,14 @@ public sealed partial class TextToolView : UserControl
                 string editorText = string.Equals(sourceFormat, TextSourceFormatEng, StringComparison.OrdinalIgnoreCase)
                     ? TextEngConverter.ConvertEngToTxt(bytes, selectedEncoding)
                     : DecodeTextToolTxt(bytes, selectedEncodingKey);
-                string? validationError = null;
-                bool isValid = !string.Equals(sourceFormat, TextSourceFormatTxt, StringComparison.OrdinalIgnoreCase)
-                    || TextEngConverter.TryValidateTxtStructure(editorText, out validationError);
-                return Tuple.Create(editorText, bytes, sourceFormat, isValid, validationError);
+                return Tuple.Create(editorText, bytes, sourceFormat);
             });
-
-            if (!loadResult.Item4)
-            {
-                await ShowMessageAsync(
-                    "Invalid Text Format",
-                    "The selected file is not in the expected Pharaoh text format."
-                    + Environment.NewLine + Environment.NewLine
-                    + loadResult.Item5);
-                SetReady("The selected file could not be loaded.");
-                return;
-            }
 
             _sourcePath = fileName;
             _sourceFormat = loadResult.Item3;
             _sourceWasEng = string.Equals(_sourceFormat, TextSourceFormatEng, StringComparison.OrdinalIgnoreCase);
             _loadedEngEncodingName = selectedEncoding;
+            _loadedSourceText = loadResult.Item1;
             _originalBytes = CloneBytes(loadResult.Item2);
 
             _suppressDirtyTracking = true;
@@ -201,15 +202,15 @@ public sealed partial class TextToolView : UserControl
         }
     }
 
-    private async Task SaveTextToolOutputAsync(string extension, string title, string savedFormat, Func<byte[]> outputFactory, Func<string, string> successMessageFactory)
+    private async Task SaveTextToolOutputAsync(string extension, string title, string savedFormat, Func<byte[]> outputFactory, Func<string, string> successMessageFactory, Action? onSaved = null, string? validationText = null)
     {
         if (!_editorTextBox.IsEnabled)
         {
             return;
         }
 
-        string currentText = _editorTextBox.Text ?? string.Empty;
-        if (string.Equals(savedFormat, TextSourceFormatTxt, StringComparison.OrdinalIgnoreCase)
+        string currentText = validationText ?? _editorTextBox.Text ?? string.Empty;
+        if (string.Equals(savedFormat, TextSourceFormatEng, StringComparison.OrdinalIgnoreCase)
             && !TextEngConverter.TryValidateTxtStructure(currentText, out string? validationError))
         {
             await ShowMessageAsync(
@@ -237,6 +238,7 @@ public sealed partial class TextToolView : UserControl
             byte[] outputBytes = await Task.Run(outputFactory);
             await FileIO.WriteBytesAsync(file, outputBytes);
             MarkTextToolSaved(savedFormat, outputBytes);
+            onSaved?.Invoke();
             SetReady(successMessageFactory(file.Name));
         }
         catch (Exception ex)
@@ -327,45 +329,36 @@ public sealed partial class TextToolView : UserControl
         return encoding.GetString(bytes, offset, bytes.Length - offset);
     }
 
-    private byte[] EncodeTextToolTxt(string text)
+    private byte[] EncodeTextToolTxt(string text, string key)
     {
-        string key = GetSelectedTextEncodingKey();
         Encoding encoding;
         switch (key)
         {
             case "Windows-1250":
                 encoding = Encoding.GetEncoding(1250);
-                _resolvedEncodingName = "windows-1250";
                 break;
             case "Windows-1251":
                 encoding = Encoding.GetEncoding(1251);
-                _resolvedEncodingName = "windows-1251";
                 break;
             case "Windows-1253":
                 encoding = Encoding.GetEncoding(1253);
-                _resolvedEncodingName = "windows-1253";
                 break;
             case "CP949":
                 encoding = Encoding.GetEncoding(949);
-                _resolvedEncodingName = "cp949";
                 break;
             case "Shift_JIS":
                 encoding = Encoding.GetEncoding(932);
-                _resolvedEncodingName = "shift_jis";
                 break;
             case "c3-tc":
                 encoding = Encoding.GetEncoding(950);
-                _resolvedEncodingName = "c3-tc";
                 break;
             case "c3-sc":
                 encoding = Encoding.GetEncoding(936);
-                _resolvedEncodingName = "c3-sc";
                 break;
             case "Windows-1252":
             case "auto":
             default:
                 encoding = Encoding.GetEncoding(1252);
-                _resolvedEncodingName = "windows-1252";
                 break;
         }
 
@@ -380,6 +373,31 @@ public sealed partial class TextToolView : UserControl
         Buffer.BlockCopy(preamble, 0, output, 0, preamble.Length);
         Buffer.BlockCopy(payload, 0, output, preamble.Length, payload.Length);
         return output;
+    }
+
+    private static string GetResolvedTextEncodingName(string key)
+    {
+        switch (key)
+        {
+            case "Windows-1250":
+                return "windows-1250";
+            case "Windows-1251":
+                return "windows-1251";
+            case "Windows-1253":
+                return "windows-1253";
+            case "CP949":
+                return "cp949";
+            case "Shift_JIS":
+                return "shift_jis";
+            case "c3-tc":
+                return "c3-tc";
+            case "c3-sc":
+                return "c3-sc";
+            case "Windows-1252":
+            case "auto":
+            default:
+                return "windows-1252";
+        }
     }
 
     private Encoding ResolveSelectedTextEncoding(byte[] bytes, string encodingKey, out string encodingName)
@@ -454,10 +472,8 @@ public sealed partial class TextToolView : UserControl
         return key == "auto" ? "Windows-1252" : key;
     }
 
-    private byte[] GetTextToolEngOutputBytes()
+    private byte[] GetTextToolEngOutputBytes(string currentText, string selectedEncoding)
     {
-        string selectedEncoding = GetSelectedEngEncodingName();
-        string currentText = _editorTextBox.Text ?? string.Empty;
         if (_sourceWasEng
             && _originalBytes != null
             && string.Equals(currentText, _originalText ?? string.Empty, StringComparison.Ordinal)
@@ -467,6 +483,40 @@ public sealed partial class TextToolView : UserControl
         }
 
         return TextEngConverter.ConvertTxtToEng(currentText, selectedEncoding);
+    }
+
+    private string GetEffectiveEngSourceText(string currentText)
+    {
+        if (!_sourceWasEng
+            && string.Equals(_sourceFormat, TextSourceFormatTxt, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentText, _originalText ?? string.Empty, StringComparison.Ordinal))
+        {
+            string? reloadedText = TryReloadCurrentTxtSourceText();
+            if (!string.IsNullOrEmpty(reloadedText))
+            {
+                return reloadedText;
+            }
+
+            if (!string.IsNullOrEmpty(_loadedSourceText))
+            {
+                return _loadedSourceText;
+            }
+        }
+
+        return currentText;
+    }
+
+    private string? TryReloadCurrentTxtSourceText()
+    {
+        if (string.IsNullOrWhiteSpace(_sourcePath)
+            || !File.Exists(_sourcePath)
+            || !string.Equals(Path.GetExtension(_sourcePath), ".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        byte[] bytes = File.ReadAllBytes(_sourcePath);
+        return DecodeTextToolTxt(bytes, GetSelectedTextEncodingKey());
     }
 
     private string GetTextToolOutputFileName(string extension)
@@ -503,6 +553,7 @@ public sealed partial class TextToolView : UserControl
         _originalText = _editorTextBox.Text ?? string.Empty;
         _sourceFormat = savedFormat;
         _sourceWasEng = string.Equals(_sourceFormat, TextSourceFormatEng, StringComparison.OrdinalIgnoreCase);
+        _loadedSourceText = _originalText;
         _originalBytes = CloneBytes(outputBytes);
         if (_sourceWasEng)
         {

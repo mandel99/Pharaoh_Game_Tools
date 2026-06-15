@@ -252,13 +252,13 @@ namespace PharaohGameTools.Core
 
         public static bool LooksLikeMessageTxt(string text)
         {
-            var sample = text ?? string.Empty;
+            var sample = GetTextFromBeginMarker(text);
             if (sample.Length > 20000)
             {
                 sample = sample.Substring(0, 20000);
             }
 
-            var normalized = sample.Replace("\r\n", "\n");
+            var normalized = NormalizeLineEndings(sample);
             var lines = normalized.Split('\n');
             var entryMarkerCount = 0;
             var mmFieldHits = 0;
@@ -322,27 +322,14 @@ namespace PharaohGameTools.Core
 
         public static bool TryValidateTxtStructure(string text, out string error)
         {
-            var normalized = (text ?? string.Empty).Replace("\r\n", "\n");
+            var normalized = NormalizeLineEndings(text);
+            var normalizedBody = GetTextFromBeginMarker(normalized);
             var lines = normalized.Split('\n');
-            var beginIndex = -1;
-            var endIndex = -1;
+            var beginIndex = FindMarkerLineIndex(lines, "***BEGIN");
+            var endIndex = beginIndex >= 0
+                ? FindMarkerLineIndex(lines, "***END", beginIndex + 1)
+                : -1;
             var sectionCount = 0;
-
-            for (var i = 0; i < lines.Length; i++)
-            {
-                var trimmed = (lines[i] ?? string.Empty).Trim();
-                if (trimmed.StartsWith("***BEGIN", StringComparison.OrdinalIgnoreCase) && beginIndex < 0)
-                {
-                    beginIndex = i;
-                    continue;
-                }
-
-                if (trimmed.StartsWith("***END", StringComparison.OrdinalIgnoreCase))
-                {
-                    endIndex = i;
-                    break;
-                }
-            }
 
             if (beginIndex < 0)
             {
@@ -389,7 +376,7 @@ namespace PharaohGameTools.Core
 
                 foreach (var field in requiredFields)
                 {
-                    if (normalized.IndexOf(field, StringComparison.Ordinal) < 0)
+                    if (normalizedBody.IndexOf(field, StringComparison.Ordinal) < 0)
                     {
                         error = string.Format("The message format is missing required field {0}.", field.TrimEnd('='));
                         return false;
@@ -529,15 +516,12 @@ namespace PharaohGameTools.Core
         private static Dictionary<int, List<string>> ParseTxtFileToGroups(string text, bool preserveEmptyLines, bool plusAddsNewline)
         {
             var groups = new Dictionary<int, List<string>>();
-            var lines = (text ?? string.Empty).Replace("\r\n", "\n").Split('\n');
+            var lines = NormalizeLineEndings(text).Split('\n');
             var begin = 0;
-            for (var i = 0; i < lines.Length; i++)
+            var beginMarkerIndex = FindMarkerLineIndex(lines, "***BEGIN");
+            if (beginMarkerIndex >= 0)
             {
-                if (lines[i].TrimStart().StartsWith("***BEGIN", StringComparison.Ordinal))
-                {
-                    begin = i + 1;
-                    break;
-                }
+                begin = beginMarkerIndex + 1;
             }
 
             int? currentGroupId = null;
@@ -727,12 +711,8 @@ namespace PharaohGameTools.Core
 
         private static MessageDocument ParseMessageTxt(string text)
         {
-            var lines = (text ?? string.Empty).Replace("\r\n", "\n").Split('\n');
-            var index = 0;
-            while (index < lines.Length && !lines[index].TrimStart().StartsWith("***BEGIN", StringComparison.Ordinal))
-            {
-                index++;
-            }
+            var lines = NormalizeLineEndings(text).Split('\n');
+            var index = FindMarkerLineIndex(lines, "***BEGIN");
 
             if (index >= lines.Length)
             {
@@ -755,7 +735,7 @@ namespace PharaohGameTools.Core
             {
                 var line = lines[index];
                 var trimmedEnd = line.TrimEnd();
-                if (trimmedEnd.TrimStart().StartsWith("***END", StringComparison.Ordinal))
+                if (LineStartsWithMarker(trimmedEnd, "***END"))
                 {
                     break;
                 }
@@ -859,6 +839,55 @@ namespace PharaohGameTools.Core
             }
 
             return document;
+        }
+
+        private static int FindMarkerLineIndex(string[] lines, string marker, int startIndex = 0)
+        {
+            for (var i = Math.Max(0, startIndex); i < lines.Length; i++)
+            {
+                if (LineStartsWithMarker(lines[i], marker))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool LineStartsWithMarker(string line, string marker)
+        {
+            if (string.IsNullOrEmpty(marker))
+            {
+                return false;
+            }
+
+            var trimmed = (line ?? string.Empty).Trim();
+            if (trimmed.Length > 0 && trimmed[0] == '\uFEFF')
+            {
+                trimmed = trimmed.Substring(1).TrimStart();
+            }
+
+            return trimmed.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string GetTextFromBeginMarker(string text)
+        {
+            var normalized = NormalizeLineEndings(text);
+            var lines = normalized.Split('\n');
+            var beginIndex = FindMarkerLineIndex(lines, "***BEGIN");
+            if (beginIndex < 0)
+            {
+                return normalized;
+            }
+
+            return string.Join("\n", lines.Skip(beginIndex));
+        }
+
+        private static string NormalizeLineEndings(string? text)
+        {
+            return (text ?? string.Empty)
+                .Replace("\r\n", "\n")
+                .Replace('\r', '\n');
         }
 
         private static byte[] BuildMessageEngFromTxt(MessageDocument document, Encoding encoding)
